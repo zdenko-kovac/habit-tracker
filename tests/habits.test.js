@@ -1,0 +1,86 @@
+import { describe, it, expect } from 'vitest';
+import { addHabit, recordDay, deleteHabit } from '../src/habits.js';
+import { emptyDoc } from '../src/storage.js';
+
+describe('addHabit', () => {
+  it('appends a habit with an id, createdOn=today, and an empty log', () => {
+    const doc = addHabit(emptyDoc(), { name: 'Drink water', target: 6 }, '2026-10-22');
+    expect(doc.habits).toHaveLength(1);
+    const h = doc.habits[0];
+    expect(h.id).toBeTruthy();
+    expect(h.name).toBe('Drink water');
+    expect(h.target).toBe(6);
+    expect(h.createdOn).toBe('2026-10-22');
+    expect(h.log).toEqual({});
+  });
+
+  it('trims the name', () => {
+    const doc = addHabit(emptyDoc(), { name: '  Water  ', target: 1 }, '2026-10-22');
+    expect(doc.habits[0].name).toBe('Water');
+  });
+
+  it('gives each habit a distinct id', () => {
+    let doc = addHabit(emptyDoc(), { name: 'A', target: 1 }, '2026-10-22');
+    doc = addHabit(doc, { name: 'B', target: 1 }, '2026-10-22');
+    expect(doc.habits[0].id).not.toBe(doc.habits[1].id);
+  });
+
+  it('rejects an empty name', () => {
+    expect(() => addHabit(emptyDoc(), { name: '   ', target: 6 }, '2026-10-22'))
+      .toThrow(/name/i);
+  });
+
+  it('rejects a target below 1', () => {
+    expect(() => addHabit(emptyDoc(), { name: 'Water', target: 0 }, '2026-10-22'))
+      .toThrow(/target/i);
+  });
+
+  it('rejects a non-integer target', () => {
+    expect(() => addHabit(emptyDoc(), { name: 'Water', target: 2.5 }, '2026-10-22'))
+      .toThrow(/target/i);
+  });
+
+  it('does not mutate the input document', () => {
+    const doc = emptyDoc();
+    addHabit(doc, { name: 'Water', target: 6 }, '2026-10-22');
+    expect(doc.habits).toHaveLength(0);
+  });
+});
+
+describe('recordDay', () => {
+  const base = addHabit(emptyDoc(), { name: 'Water', target: 6 }, '2026-10-22');
+  const id = base.habits[0].id;
+
+  it("sets today's count in the habit log", () => {
+    const doc = recordDay(base, id, 6, '2026-10-22');
+    expect(doc.habits[0].log['2026-10-22']).toBe(6);
+  });
+
+  it('overwrites an earlier count for the same day (last write wins)', () => {
+    let doc = recordDay(base, id, 3, '2026-10-22');
+    doc = recordDay(doc, id, 6, '2026-10-22');
+    expect(doc.habits[0].log['2026-10-22']).toBe(6);
+  });
+
+  it('rejects a negative count', () => {
+    expect(() => recordDay(base, id, -1, '2026-10-22')).toThrow(/count/i);
+  });
+
+  it('throws for an unknown habit id', () => {
+    expect(() => recordDay(base, 'nope', 6, '2026-10-22')).toThrow(/not found/i);
+  });
+
+  it('does not mutate the input document', () => {
+    recordDay(base, id, 6, '2026-10-22');
+    expect(base.habits[0].log).toEqual({});
+  });
+});
+
+describe('deleteHabit', () => {
+  it('removes the habit and its log', () => {
+    const base = addHabit(emptyDoc(), { name: 'Water', target: 6 }, '2026-10-22');
+    const id = base.habits[0].id;
+    const doc = deleteHabit(base, id);
+    expect(doc.habits).toHaveLength(0);
+  });
+});
