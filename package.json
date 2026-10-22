@@ -1,0 +1,14 @@
+{
+  "name": "habit-tracker",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "dev": "npx --yes serve ."
+  },
+  "devDependencies": {
+    "vitest": "^2.1.0"
+  }
+}
