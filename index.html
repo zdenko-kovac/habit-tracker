@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="color-scheme" content="light dark" />
+    <title>Habit Tracker</title>
+    <link rel="stylesheet" href="src/styles.css" />
+  </head>
+  <body>
+    <a class="skip-link" href="#today">Skip to today's habits</a>
+
+    <header class="app-header">
+      <h1>Habit Tracker</h1>
+      <p class="tagline">Everything stays on this device.</p>
+    </header>
+
+    <main>
+      <!-- Non-blocking status / error region (e.g. corrupt-storage notice). -->
+      <div id="notice" role="alert" hidden></div>
+
+      <section aria-labelledby="add-heading" class="add-habit">
+        <h2 id="add-heading">Add a habit</h2>
+        <form id="add-form" novalidate>
+          <div class="field">
+            <label for="habit-name">Habit</label>
+            <input
+              id="habit-name"
+              name="name"
+              type="text"
+              autocomplete="off"
+              required
+              aria-describedby="add-error"
+            />
+          </div>
+          <div class="field field--target">
+            <label for="habit-target">Daily target</label>
+            <input
+              id="habit-target"
+              name="target"
+              type="number"
+              inputmode="numeric"
+              min="1"
+              step="1"
+              value="1"
+              required
+              aria-describedby="add-error"
+            />
+          </div>
+          <button type="submit">Add habit</button>
+          <p id="add-error" class="field-error" role="alert" hidden></p>
+        </form>
+      </section>
+
+      <section id="today" aria-labelledby="today-heading">
+        <h2 id="today-heading">Today</h2>
+        <ul id="habit-list" class="habit-list" aria-live="polite"></ul>
+        <p id="empty-state" class="empty-state" hidden>
+          No habits yet. Add your first one above.
+        </p>
+      </section>
+    </main>
+
+    <script type="module" src="src/main.js"></script>
+  </body>
+</html>

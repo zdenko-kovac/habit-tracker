@@ -1,0 +1,229 @@
+:root {
+  --bg: #f7f7f5;
+  --surface: #ffffff;
+  --text: #1a1a1a;
+  --muted: #5c5c5c;
+  --border: #d9d9d6;
+  --accent: #2f6f4f;
+  --met: #2f6f4f;
+  --progress: #b26a00;
+  --focus: #1a6ed8;
+  --radius: 10px;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #16181a;
+    --surface: #202428;
+    --text: #ececec;
+    --muted: #a0a4a8;
+    --border: #363b40;
+    --accent: #5fbd8a;
+    --met: #5fbd8a;
+    --progress: #e0a042;
+    --focus: #6aa8ff;
+  }
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  line-height: 1.5;
+  color: var(--text);
+  background: var(--bg);
+  padding: 1.5rem 1rem 4rem;
+}
+
+main {
+  max-width: 34rem;
+  margin: 0 auto;
+}
+
+/* Keyboard focus is always clearly visible. */
+:focus-visible {
+  outline: 3px solid var(--focus);
+  outline-offset: 2px;
+}
+
+.skip-link {
+  position: absolute;
+  left: -999px;
+  top: 0;
+  background: var(--surface);
+  padding: 0.5rem 0.75rem;
+  border-radius: var(--radius);
+}
+.skip-link:focus {
+  left: 1rem;
+  top: 1rem;
+  z-index: 10;
+}
+
+.app-header {
+  max-width: 34rem;
+  margin: 0 auto 1.5rem;
+}
+.app-header h1 {
+  margin: 0;
+  font-size: 1.6rem;
+}
+.tagline {
+  margin: 0.2rem 0 0;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+h2 {
+  font-size: 1.1rem;
+  margin: 0 0 0.75rem;
+}
+
+#notice {
+  background: #fff4e5;
+  color: #663c00;
+  border: 1px solid #e0a042;
+  border-radius: var(--radius);
+  padding: 0.75rem 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.add-habit {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+#add-form {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  align-items: flex-end;
+}
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  flex: 1 1 10rem;
+}
+.field--target {
+  flex: 0 0 7rem;
+}
+.field label {
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+input {
+  font: inherit;
+  padding: 0.5rem 0.6rem;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg);
+  color: var(--text);
+}
+
+button {
+  font: inherit;
+  cursor: pointer;
+  border: 1px solid var(--accent);
+  background: var(--accent);
+  color: #fff;
+  padding: 0.55rem 1rem;
+  border-radius: 8px;
+}
+button:hover {
+  filter: brightness(1.05);
+}
+button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.field-error {
+  flex-basis: 100%;
+  margin: 0;
+  color: #b00020;
+  font-size: 0.9rem;
+}
+@media (prefers-color-scheme: dark) {
+  .field-error { color: #ff8a9a; }
+  #notice { background: #3a2a10; color: #ffcf8f; }
+}
+
+.habit-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.habit {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-left: 4px solid var(--border);
+  border-radius: var(--radius);
+  padding: 0.8rem 1rem;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  grid-template-areas:
+    "name   stepper"
+    "status stepper"
+    "streak stepper";
+  gap: 0.15rem 1rem;
+  align-items: center;
+}
+.habit.is-met { border-left-color: var(--met); }
+.habit.is-progress { border-left-color: var(--progress); }
+
+.habit__name {
+  grid-area: name;
+  font-weight: 600;
+}
+.habit__status {
+  grid-area: status;
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+.habit__streak {
+  grid-area: streak;
+  font-size: 0.85rem;
+}
+
+.stepper {
+  grid-area: stepper;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.stepper button {
+  width: 2.2rem;
+  height: 2.2rem;
+  padding: 0;
+  font-size: 1.2rem;
+  line-height: 1;
+  background: var(--surface);
+  color: var(--text);
+  border: 1px solid var(--border);
+}
+.stepper button:hover:not(:disabled) {
+  border-color: var(--accent);
+}
+.stepper__value {
+  min-width: 1.5rem;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+}
+
+.empty-state {
+  color: var(--muted);
+  font-style: italic;
+}
