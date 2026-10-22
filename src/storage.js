@@ -25,14 +25,14 @@ export function load(storage = localStorage) {
     return { ok: false, reason: 'corrupt', raw };
   }
 
-  const version = parsed.version ?? 0;
+  const version = isObject(parsed) ? parsed.version ?? 0 : 0;
   if (version > CURRENT_VERSION) {
     return { ok: false, reason: 'unknown-version', raw };
   }
-  if (version < CURRENT_VERSION) {
-    return { ok: true, doc: migrate(parsed, version) };
-  }
-  return { ok: true, doc: parsed };
+  // Everything parseable and not-newer is coerced into the known schema. localStorage
+  // is untrusted (hand-editable, writable by any script on the origin), so malformed
+  // habits are dropped and bad fields repaired rather than handed through.
+  return { ok: true, doc: sanitizeDoc(parsed) };
 }
 
 /** Persist the document as JSON. */
@@ -40,8 +40,51 @@ export function save(doc, storage = localStorage) {
   storage.setItem(STORAGE_KEY, JSON.stringify(doc));
 }
 
-// Bring an older document forward to the current schema. v0 (no version field) only
-// lacked the version tag, so migration is additive.
-function migrate(doc, _fromVersion) {
-  return { version: CURRENT_VERSION, habits: doc.habits ?? [] };
+function isObject(v) {
+  return typeof v === 'object' && v !== null && !Array.isArray(v);
+}
+
+/**
+ * Coerce an arbitrary parsed value into a valid v1 document. Drops habits that can't
+ * be repaired (bad name or target); repairs recoverable fields (log). This is the
+ * trust boundary for stored data — downstream code can assume the shape holds.
+ */
+function sanitizeDoc(parsed) {
+  if (!isObject(parsed) || !Array.isArray(parsed.habits)) return emptyDoc();
+  const habits = parsed.habits.map(sanitizeHabit).filter(Boolean);
+  return { version: CURRENT_VERSION, habits };
+}
+
+function sanitizeHabit(h) {
+  if (!isObject(h)) return null;
+  if (typeof h.name !== 'string' || h.name.trim() === '') return null;
+  if (!Number.isInteger(h.target) || h.target < 1) return null;
+  return {
+    id: typeof h.id === 'string' && h.id ? h.id : fallbackId(),
+    name: h.name,
+    target: h.target,
+    createdOn: isDateString(h.createdOn) ? h.createdOn : '1970-01-01',
+    log: sanitizeLog(h.log),
+  };
+}
+
+function sanitizeLog(log) {
+  if (!isObject(log)) return {};
+  const clean = {};
+  for (const [date, count] of Object.entries(log)) {
+    if (isDateString(date) && Number.isInteger(count) && count >= 0) {
+      clean[date] = count;
+    }
+  }
+  return clean;
+}
+
+function isDateString(v) {
+  return typeof v === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(v);
+}
+
+let fallbackCounter = 0;
+function fallbackId() {
+  fallbackCounter += 1;
+  return `h_recovered_${fallbackCounter}`;
 }

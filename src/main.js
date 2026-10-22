@@ -83,10 +83,14 @@ function renderDisplayRow(li, habit) {
 
   const streakEl = document.createElement('span');
   streakEl.className = 'habit__streak';
-  // Emoji is decorative; the text carries the meaning for screen readers.
-  streakEl.innerHTML =
-    `<span aria-hidden="true">🔥</span> ` +
-    `<span>${streak}‑day streak</span>`;
+  // Built with textContent, not innerHTML — no HTML sink in the render path. The
+  // emoji is decorative; the adjacent text carries the meaning for screen readers.
+  const flame = document.createElement('span');
+  flame.setAttribute('aria-hidden', 'true');
+  flame.textContent = '🔥';
+  const streakText = document.createElement('span');
+  streakText.textContent = ` ${streak}‑day streak`;
+  streakEl.append(flame, streakText);
 
   const status = document.createElement('span');
   status.className = 'habit__status';
