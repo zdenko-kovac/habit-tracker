@@ -176,7 +176,7 @@ button:disabled {
   grid-template-areas:
     "name   stepper"
     "status stepper"
-    "streak stepper";
+    "streak actions";
   gap: 0.15rem 1rem;
   align-items: center;
 }
@@ -226,4 +226,58 @@ button:disabled {
 .empty-state {
   color: var(--muted);
   font-style: italic;
+}
+
+/* Secondary / danger button variants (edit, cancel, delete, clear-all). */
+.btn-secondary {
+  background: var(--surface);
+  color: var(--text);
+  border: 1px solid var(--border);
+}
+.btn-secondary:hover {
+  border-color: var(--accent);
+  filter: none;
+}
+.btn-danger {
+  background: var(--surface);
+  color: #b00020;
+  border: 1px solid var(--border);
+}
+.btn-danger:hover {
+  border-color: #b00020;
+  filter: none;
+}
+@media (prefers-color-scheme: dark) {
+  .btn-danger { color: #ff8a9a; }
+  .btn-danger:hover { border-color: #ff8a9a; }
+}
+
+.habit__actions {
+  grid-area: actions;
+  display: flex;
+  gap: 0.4rem;
+}
+.habit__actions button {
+  padding: 0.35rem 0.6rem;
+  font-size: 0.85rem;
+}
+
+/* Edit mode: row collapses to a single-column form spanning both tracks. */
+.habit--editing {
+  grid-template-columns: 1fr;
+  grid-template-areas: "form";
+}
+.edit-form {
+  grid-area: form;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  align-items: flex-end;
+}
+.edit-form .field {
+  flex: 1 1 8rem;
+}
+
+.clear-all {
+  margin-top: 1.25rem;
 }

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { addHabit, recordDay, deleteHabit } from '../src/habits.js';
+import { addHabit, recordDay, deleteHabit, editHabit, clearAll } from '../src/habits.js';
 import { emptyDoc } from '../src/storage.js';
 
 describe('addHabit', () => {
@@ -82,5 +82,50 @@ describe('deleteHabit', () => {
     const id = base.habits[0].id;
     const doc = deleteHabit(base, id);
     expect(doc.habits).toHaveLength(0);
+  });
+});
+
+describe('editHabit', () => {
+  const base = addHabit(emptyDoc(), { name: 'Water', target: 6 }, '2026-10-20');
+  const id = base.habits[0].id;
+
+  it('updates the name and target, preserving createdOn and log', () => {
+    const withLog = recordDay(base, id, 6, '2026-10-20');
+    const doc = editHabit(withLog, id, { name: 'Hydrate', target: 8 });
+    const h = doc.habits[0];
+    expect(h.name).toBe('Hydrate');
+    expect(h.target).toBe(8);
+    expect(h.createdOn).toBe('2026-10-20');
+    expect(h.log).toEqual({ '2026-10-20': 6 });
+  });
+
+  it('trims the new name', () => {
+    const doc = editHabit(base, id, { name: '  Hydrate  ', target: 8 });
+    expect(doc.habits[0].name).toBe('Hydrate');
+  });
+
+  it('rejects an empty name', () => {
+    expect(() => editHabit(base, id, { name: '  ', target: 6 })).toThrow(/name/i);
+  });
+
+  it('rejects a target below 1', () => {
+    expect(() => editHabit(base, id, { name: 'Water', target: 0 })).toThrow(/target/i);
+  });
+
+  it('throws for an unknown habit id', () => {
+    expect(() => editHabit(base, 'nope', { name: 'Water', target: 6 }))
+      .toThrow(/not found/i);
+  });
+
+  it('does not mutate the input document', () => {
+    editHabit(base, id, { name: 'Hydrate', target: 8 });
+    expect(base.habits[0].name).toBe('Water');
+  });
+});
+
+describe('clearAll', () => {
+  it('returns an empty version-1 document', () => {
+    const base = addHabit(emptyDoc(), { name: 'Water', target: 6 }, '2026-10-22');
+    expect(clearAll(base)).toEqual({ version: 1, habits: [] });
   });
 });
