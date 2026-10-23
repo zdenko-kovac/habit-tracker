@@ -3,12 +3,18 @@
 
 let idCounter = 0;
 
-function newId() {
-  // Deterministic-enough unique id without reading the clock or RNG (both banned in
-  // pure logic). A monotonic counter plus a short base-36 suffix avoids collisions
-  // within a session; ids are opaque and never parsed.
-  idCounter += 1;
-  return `h_${idCounter.toString(36)}${(idCounter * 2654435761 % 1000).toString(36)}`;
+// Generate an id guaranteed not to collide with any id already in `existing` (a Set).
+// The in-memory counter is only a seed for variety — it resets on page reload while
+// ids persist in storage, so uniqueness MUST be checked against the live document,
+// never assumed from the counter alone. Looping until unused closes that gap.
+// Exported for testing: the collision-skip is the core of the two-habits-share-an-id fix.
+export function newId(existing) {
+  let id;
+  do {
+    idCounter += 1;
+    id = `h_${idCounter.toString(36)}${(idCounter * 2654435761 % 1000).toString(36)}`;
+  } while (existing.has(id));
+  return id;
 }
 
 /** Validate and normalize a habit's name and target. Throws on invalid input. */
@@ -24,7 +30,8 @@ function validateFields({ name, target }) {
 /** Add a habit. Validates name (non-empty) and target (integer >= 1). */
 export function addHabit(doc, fields, today) {
   const { name, target } = validateFields(fields);
-  const habit = { id: newId(), name, target, createdOn: today, log: {} };
+  const existing = new Set(doc.habits.map((h) => h.id));
+  const habit = { id: newId(existing), name, target, createdOn: today, log: {} };
   return { ...doc, habits: [...doc.habits, habit] };
 }
 

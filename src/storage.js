@@ -51,7 +51,15 @@ function isObject(v) {
  */
 function sanitizeDoc(parsed) {
   if (!isObject(parsed) || !Array.isArray(parsed.habits)) return emptyDoc();
+  const seen = new Set();
   const habits = parsed.habits.map(sanitizeHabit).filter(Boolean);
+  // Repair duplicate ids: a doc written by a pre-fix version could contain two habits
+  // sharing an id (the old counter reset across reloads), which would make per-habit
+  // operations act on both. Reassign any collision to a fresh unique id.
+  for (const habit of habits) {
+    while (seen.has(habit.id)) habit.id = fallbackId();
+    seen.add(habit.id);
+  }
   return { version: CURRENT_VERSION, habits };
 }
 

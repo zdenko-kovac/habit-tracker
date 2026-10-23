@@ -147,4 +147,18 @@ describe('load — untrusted/tampered shapes', () => {
     // guarantees by using textContent. Storage's job is only not to lose/alter it.
     expect(doc.habits[0].name).toBe(evil);
   });
+
+  it('reassigns duplicate habit ids so per-habit operations cannot affect two habits', () => {
+    // A doc written by a pre-fix version could have two habits sharing an id.
+    const { doc } = withRaw({
+      version: 1,
+      habits: [
+        { id: 'h_1l5', name: 'A', target: 6, createdOn: '2026-10-20', log: {} },
+        { id: 'h_1l5', name: 'B', target: 6, createdOn: '2026-10-20', log: {} },
+      ],
+    });
+    const ids = doc.habits.map((h) => h.id);
+    expect(doc.habits).toHaveLength(2);
+    expect(new Set(ids).size).toBe(2); // ids now distinct
+  });
 });

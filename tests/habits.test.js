@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { addHabit, recordDay, deleteHabit, editHabit, clearAll } from '../src/habits.js';
+import { addHabit, recordDay, deleteHabit, editHabit, clearAll, newId } from '../src/habits.js';
 import { emptyDoc } from '../src/storage.js';
 
 describe('addHabit', () => {
@@ -23,6 +23,32 @@ describe('addHabit', () => {
     let doc = addHabit(emptyDoc(), { name: 'A', target: 1 }, '2026-10-22');
     doc = addHabit(doc, { name: 'B', target: 1 }, '2026-10-22');
     expect(doc.habits[0].id).not.toBe(doc.habits[1].id);
+  });
+
+  it('newId skips ids already in the provided set', () => {
+    // Direct test of the collision-avoidance. Generate a batch, mark them all taken,
+    // and require the next id to avoid every one. (The cross-reload scenario that
+    // triggered the bug — a counter reset regenerating a stored id — is guarded at
+    // the storage layer by the duplicate-id dedupe test, since it's inherently a
+    // cross-process event this single-process suite can't reset the counter to force.)
+    const taken = new Set([newId(new Set()), newId(new Set()), newId(new Set())]);
+    const fresh = newId(taken);
+    expect(taken.has(fresh)).toBe(false);
+  });
+
+  it('incrementing one of two habits does not change the other', () => {
+    // End-to-end guard on the reported symptom. Build a two-habit doc the way a
+    // reload would (fixed ids), then record a day on the first only.
+    const loaded = {
+      version: 1,
+      habits: [
+        { id: 'h_1', name: 'A', target: 6, createdOn: '2026-10-20', log: {} },
+        { id: 'h_2', name: 'B', target: 6, createdOn: '2026-10-20', log: {} },
+      ],
+    };
+    const doc = recordDay(loaded, 'h_1', 1, '2026-10-22');
+    expect(doc.habits[0].log['2026-10-22']).toBe(1);
+    expect(doc.habits[1].log['2026-10-22']).toBeUndefined();
   });
 
   it('rejects an empty name', () => {
